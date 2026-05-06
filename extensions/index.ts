@@ -120,7 +120,7 @@ const getCompactClient = () =>
 function generateDiffString(
   oldContent: string,
   newContent: string,
-  contextLines: number = DIFF_CONTEXT_LINES,
+  contextLines: number = DIFF_CONTEXT_LINES
 ): { diff: string; firstChangedLine: number | undefined } {
   const parts = Diff.diffLines(oldContent, newContent);
   const output: string[] = [];
@@ -157,8 +157,7 @@ function generateDiffString(
       }
       lastWasChange = true;
     } else {
-      const nextPartIsChange =
-        i < parts.length - 1 && (parts[i + 1].added || parts[i + 1].removed);
+      const nextPartIsChange = i < parts.length - 1 && (parts[i + 1].added || parts[i + 1].removed);
       const hasLeadingChange = lastWasChange;
       const hasTrailingChange = nextPartIsChange;
 

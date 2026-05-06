@@ -55,7 +55,8 @@
     ]
   },
   "dependencies": {
-    "@morphllm/morphsdk": "0.2.160"
+    "@morphllm/morphsdk": "0.2.160",
+    "diff": "^7.0.0"
   },
   "peerDependencies": {
     "@mariozechner/pi-ai": "*",
@@ -66,6 +67,7 @@
   "devDependencies": {
     "@commitlint/cli": "^20.5.0",
     "@commitlint/config-conventional": "^20.5.0",
+    "@types/diff": "^7.0.2",
     "@types/node": "^20.0.0",
     "@vitest/coverage-v8": "^4.1.2",
     "knip": "^6.2.0",
