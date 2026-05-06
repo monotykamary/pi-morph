@@ -863,7 +863,7 @@ Options:
           // Generate diff for TUI rendering (custom format with line numbers
           // that renderDiff expects) and for text output
           const udiff = result.udiff || 'No changes detected';
-          const { linesAdded, linesRemoved } = result.changes;
+          const { linesAdded, linesRemoved, linesModified } = result.changes;
           const mergedLines = mergedCode.split('\n').length;
           const renderableDiff = generateDiffString(originalCode, mergedCode);
 
@@ -884,7 +884,7 @@ Options:
                 type: 'text',
                 text: `Applied edit to ${target_filepath}
 
-+${linesAdded} -${linesRemoved} lines | ${originalLineCount} -> ${mergedLines} total | ${apiDuration}ms
++${linesAdded} -${linesRemoved} ~${linesModified} lines | ${originalLineCount} -> ${mergedLines} total | ${apiDuration}ms
 
 \`\`\`diff
 ${diffText}
@@ -897,6 +897,7 @@ ${diffText}
               path: target_filepath,
               linesAdded,
               linesRemoved,
+              linesModified,
               originalLines: originalLineCount,
               mergedLines,
               durationMs: apiDuration,
@@ -932,6 +933,7 @@ ${diffText}
               path?: string;
               linesAdded?: number;
               linesRemoved?: number;
+              linesModified?: number;
               durationMs?: number;
               originalLines?: number;
               mergedLines?: number;
@@ -969,6 +971,9 @@ ${diffText}
             theme.fg('success', '✓ ') +
             theme.fg('accent', `Morph: ${d.path}`) +
             theme.fg('muted', ` +${d.linesAdded}/-${d.linesRemoved}`);
+          if (d.linesModified) {
+            content += theme.fg('muted', `/~${d.linesModified}`);
+          }
           if (d.durationMs) {
             content += theme.fg('dim', ` (${d.durationMs}ms)`);
           }
