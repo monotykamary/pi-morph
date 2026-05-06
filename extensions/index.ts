@@ -28,10 +28,12 @@ import {
 } from '@mariozechner/pi-coding-agent';
 import { Type } from 'typebox';
 import { Text } from '@mariozechner/pi-tui';
+import { renderDiff } from '@mariozechner/pi-coding-agent';
 import { MorphClient, WarpGrepClient, CompactClient } from '@morphllm/morphsdk';
 import type { WarpGrepResult } from '@morphllm/morphsdk';
 import { isAbsolute, resolve as resolvePath } from 'node:path';
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
+import * as Diff from 'diff';
 import { dirname } from 'node:path';
 
 // ---------------------------------------------------------------------------
@@ -53,6 +55,9 @@ const EXISTING_CODE_MARKER = '// ... existing code ...';
 const MORPH_ROUTING_HINT_HEADER = 'Morph plugin routing hints:';
 
 /** Approximate: ~3 characters per token (rough estimate for threshold math) */
+
+/** Context lines for diff display */
+const DIFF_CONTEXT_LINES = 4;
 const CHARS_PER_TOKEN = 3;
 
 /** Feature flags — users can disable specific capabilities. All default to true. */
@@ -102,6 +107,126 @@ const getCompactClient = () =>
         timeout: MORPH_COMPACT_TIMEOUT,
       })
     : null;
+
+// ---------------------------------------------------------------------------
+// Diff generation (custom format matching renderDiff expectations)
+// ---------------------------------------------------------------------------
+
+/**
+ * Generate a unified diff with line numbers, matching the format that pi's
+ * renderDiff component expects: "+<linenum> <content>", "-<linenum> <content>",
+ * " <linenum> <content>".
+ */
+function generateDiffString(
+  oldContent: string,
+  newContent: string,
+  contextLines: number = DIFF_CONTEXT_LINES,
+): { diff: string; firstChangedLine: number | undefined } {
+  const parts = Diff.diffLines(oldContent, newContent);
+  const output: string[] = [];
+  const oldLines = oldContent.split('\n');
+  const newLines = newContent.split('\n');
+  const maxLineNum = Math.max(oldLines.length, newLines.length);
+  const lineNumWidth = String(maxLineNum).length;
+  let oldLineNum = 1;
+  let newLineNum = 1;
+  let lastWasChange = false;
+  let firstChangedLine: number | undefined;
+
+  for (let i = 0; i < parts.length; i++) {
+    const part = parts[i];
+    const raw = part.value.split('\n');
+    if (raw[raw.length - 1] === '') {
+      raw.pop();
+    }
+
+    if (part.added || part.removed) {
+      if (firstChangedLine === undefined) {
+        firstChangedLine = newLineNum;
+      }
+      for (const line of raw) {
+        if (part.added) {
+          const lineNum = String(newLineNum).padStart(lineNumWidth, ' ');
+          output.push(`+${lineNum} ${line}`);
+          newLineNum++;
+        } else {
+          const lineNum = String(oldLineNum).padStart(lineNumWidth, ' ');
+          output.push(`-${lineNum} ${line}`);
+          oldLineNum++;
+        }
+      }
+      lastWasChange = true;
+    } else {
+      const nextPartIsChange =
+        i < parts.length - 1 && (parts[i + 1].added || parts[i + 1].removed);
+      const hasLeadingChange = lastWasChange;
+      const hasTrailingChange = nextPartIsChange;
+
+      if (hasLeadingChange && hasTrailingChange) {
+        if (raw.length <= contextLines * 2) {
+          for (const line of raw) {
+            const lineNum = String(oldLineNum).padStart(lineNumWidth, ' ');
+            output.push(` ${lineNum} ${line}`);
+            oldLineNum++;
+            newLineNum++;
+          }
+        } else {
+          const leadingLines = raw.slice(0, contextLines);
+          const trailingLines = raw.slice(raw.length - contextLines);
+          const skippedLines = raw.length - leadingLines.length - trailingLines.length;
+          for (const line of leadingLines) {
+            const lineNum = String(oldLineNum).padStart(lineNumWidth, ' ');
+            output.push(` ${lineNum} ${line}`);
+            oldLineNum++;
+            newLineNum++;
+          }
+          output.push(` ${''.padStart(lineNumWidth, ' ')} ...`);
+          oldLineNum += skippedLines;
+          newLineNum += skippedLines;
+          for (const line of trailingLines) {
+            const lineNum = String(oldLineNum).padStart(lineNumWidth, ' ');
+            output.push(` ${lineNum} ${line}`);
+            oldLineNum++;
+            newLineNum++;
+          }
+        }
+      } else if (hasLeadingChange) {
+        const shownLines = raw.slice(0, contextLines);
+        const skippedLines = raw.length - shownLines.length;
+        for (const line of shownLines) {
+          const lineNum = String(oldLineNum).padStart(lineNumWidth, ' ');
+          output.push(` ${lineNum} ${line}`);
+          oldLineNum++;
+          newLineNum++;
+        }
+        if (skippedLines > 0) {
+          output.push(` ${''.padStart(lineNumWidth, ' ')} ...`);
+          oldLineNum += skippedLines;
+          newLineNum += skippedLines;
+        }
+      } else if (hasTrailingChange) {
+        const skippedLines = Math.max(0, raw.length - contextLines);
+        if (skippedLines > 0) {
+          output.push(` ${''.padStart(lineNumWidth, ' ')} ...`);
+          oldLineNum += skippedLines;
+          newLineNum += skippedLines;
+        }
+        for (const line of raw.slice(skippedLines)) {
+          const lineNum = String(oldLineNum).padStart(lineNumWidth, ' ');
+          output.push(` ${lineNum} ${line}`);
+          oldLineNum++;
+          newLineNum++;
+        }
+      } else {
+        oldLineNum += raw.length;
+        newLineNum += raw.length;
+      }
+      lastWasChange = false;
+    }
+  }
+
+  return { diff: output.join('\n'), firstChangedLine };
+}
 
 // ---------------------------------------------------------------------------
 // Utility functions
@@ -620,17 +745,22 @@ Alternatively, use the native 'edit' tool for this change.`
               if (!normalizedCodeEdit.includes(EXISTING_CODE_MARKER)) {
                 await mkdir(dirname(absolutePath), { recursive: true });
                 await writeFile(absolutePath, normalizedCodeEdit, 'utf8');
+                const newLines = normalizedCodeEdit.split('\n').length;
+                // Generate a diff showing all new content as added
+                const renderableDiff = generateDiffString('', normalizedCodeEdit);
                 return {
                   content: [
                     {
                       type: 'text',
-                      text: `Created new file: ${target_filepath}\n\nLines: ${normalizedCodeEdit.split('\n').length}`,
+                      text: `Created new file: ${target_filepath}\n\nLines: ${newLines}`,
                     },
                   ],
                   details: {
                     created: true,
                     path: target_filepath,
-                    lines: normalizedCodeEdit.split('\n').length,
+                    lines: newLines,
+                    diff: renderableDiff.diff,
+                    firstChangedLine: renderableDiff.firstChangedLine,
                   },
                 };
               }
@@ -730,12 +860,14 @@ Options:
           // Write the merged result
           await writeFile(absolutePath, mergedCode, 'utf8');
 
-          // Build diff output
+          // Generate diff for TUI rendering (custom format with line numbers
+          // that renderDiff expects) and for text output
           const udiff = result.udiff || 'No changes detected';
           const { linesAdded, linesRemoved } = result.changes;
           const mergedLines = mergedCode.split('\n').length;
+          const renderableDiff = generateDiffString(originalCode, mergedCode);
 
-          // Truncate diff if very long
+          // Truncate udiff if very long for text output
           const truncation = truncateHead(udiff, {
             maxLines: 80,
             maxBytes: 4000,
@@ -768,6 +900,8 @@ ${diffText}
               originalLines: originalLineCount,
               mergedLines,
               durationMs: apiDuration,
+              diff: renderableDiff.diff,
+              firstChangedLine: renderableDiff.firstChangedLine,
             },
           };
         });
@@ -801,6 +935,9 @@ ${diffText}
               durationMs?: number;
               originalLines?: number;
               mergedLines?: number;
+              lines?: number;
+              diff?: string;
+              firstChangedLine?: number;
             }
           | undefined;
 
@@ -810,15 +947,24 @@ ${diffText}
         }
 
         if (d?.created) {
-          text.setText(
+          const summary =
             theme.fg('success', '✓ ') +
-              theme.fg('accent', `Morph: ${d.path}`) +
-              theme.fg('muted', ` (new, ${d.mergedLines} lines)`)
-          );
+            theme.fg('accent', `Morph: ${d.path}`) +
+            theme.fg('muted', ` (new, ${d.mergedLines || d.lines} lines)`);
+
+          if (expanded && d.diff) {
+            const diffComponent = new Text('', 0, 0);
+            const renderedDiff = renderDiff(d.diff, { filePath: d.path });
+            diffComponent.setText(summary + '\n' + renderedDiff);
+            return diffComponent;
+          }
+
+          text.setText(summary);
           return text;
         }
 
         if (d?.linesAdded !== undefined) {
+          // Build summary line
           let content =
             theme.fg('success', '✓ ') +
             theme.fg('accent', `Morph: ${d.path}`) +
@@ -830,6 +976,15 @@ ${diffText}
             content += '\n' + theme.fg('dim', `${d.originalLines} → ${d.mergedLines} lines`);
           }
           text.setText(content);
+
+          // When expanded and we have a diff, render it
+          if (expanded && d.diff) {
+            const diffComponent = new Text('', 0, 0);
+            const renderedDiff = renderDiff(d.diff, { filePath: d.path });
+            diffComponent.setText('\n' + renderedDiff);
+            return diffComponent;
+          }
+
           return text;
         }
 
