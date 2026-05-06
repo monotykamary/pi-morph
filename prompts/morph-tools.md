@@ -1,0 +1,70 @@
+# Morph Tool Selection Policy
+
+This instruction is always loaded so the agent reliably chooses the right Morph tool for each task.
+
+## Code Editing Tool Selection (Critical)
+
+Use the right editing tool for the job. `morph_edit` is not the default for all edits, but it SHOULD be preferred for edits where partial-snippet merging is faster or more reliable than exact-string replacement.
+
+### First-Action Policy
+
+| Editing task                              | First tool                 | Why                                        |
+| ----------------------------------------- | -------------------------- | ------------------------------------------ |
+| Large file edits (300+ lines)             | `morph_edit`               | Avoids fragile exact-string matching       |
+| Multiple scattered changes in one file    | `morph_edit`               | Batch edits efficiently                    |
+| Whitespace-sensitive edits                | `morph_edit`               | More forgiving with formatting/context     |
+| Complex refactors inside an existing file | `morph_edit`               | Better partial-file merge behavior         |
+| Small exact replacement                   | `edit`                     | Faster, local, no API call                 |
+| Single-line rename/fix                    | `edit`                     | Simpler exact replacement                  |
+| New file creation                         | `write`                    | `morph_edit` only edits existing files     |
+| Codebase search/exploration               | `warpgrep_codebase_search` | Multi-turn agentic search with ripgrep     |
+| Find where something is defined/used      | `warpgrep_codebase_search` | Semantic search across files               |
+| Public GitHub repo exploration            | `warpgrep_github_search`   | Grounded context from indexed public repos |
+| Exact keyword/function name search        | `grep`                     | Direct ripgrep, no API call                |
+
+### When NOT to Use morph_edit
+
+- The change is a small exact `oldText` -> `newString` replacement
+- You are creating a brand new file
+- `MORPH_API_KEY` is not configured; fall back to native `edit`
+
+### WarpGrep Usage
+
+Use `warpgrep_codebase_search` for natural-language, exploratory searches:
+
+- "Find the authentication flow"
+- "How does error handling work in the API layer"
+- "Where is the database connection configured"
+
+Do NOT use it for exact keyword lookups (function names, variable names, error strings). Use `grep` or `read` for those.
+
+### Public Repo Context Usage
+
+**Prefer `warpgrep_github_search` over web search or docs fetching** when the question is about how an open-source library or SDK works internally. If docs URLs return 404s or you need implementation-level understanding, go to the source.
+
+Use `warpgrep_github_search` when:
+
+- User asks how an external library/SDK works (auth, retries, sessions, internals)
+- You need implementation details of any open-source dependency
+- Docs URLs are failing — search the source instead
+- The user didn't provide a repo — infer the canonical GitHub owner/repo from the package, crate, or module name using the matching ecosystem registry first
+
+Examples:
+
+- "How does Privy handle session token refresh?" → find `privy-io/privy-browser`, search it
+- "How does Next.js handle middleware?" → search `vercel/next.js`
+- "Where is retry logic in axios?" → search `axios/axios`
+
+Use `warpgrep_codebase_search` for the checked-out local repo.
+
+Provide exactly one repository locator to `warpgrep_github_search`:
+
+- `owner_repo` for values like `owner/repo`
+- `github_url` for full GitHub URLs
+
+### Fallback Policy
+
+- If `morph_edit` fails due to API error or timeout, use native `edit`
+- If the change requires replacing the entire file, use `write`
+- If `warpgrep_codebase_search` fails, fall back to `grep` + `read`
+- If `warpgrep_github_search` fails, clone the repo only if the task justifies local setup cost

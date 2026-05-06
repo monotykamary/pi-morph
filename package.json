@@ -1,0 +1,79 @@
+{
+  "name": "pi-morph-plugin",
+  "version": "1.0.0",
+  "description": "Pi extension for Morph SDK — Fast Apply, WarpGrep, Public Repo Context, and Compaction",
+  "type": "module",
+  "main": "extensions/index.ts",
+  "keywords": [
+    "pi-package",
+    "morph",
+    "fast-apply",
+    "warpgrep",
+    "code-search",
+    "code-editing"
+  ],
+  "author": "Morph",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/morphllm/pi-morph-plugin"
+  },
+  "pi": {
+    "extensions": [
+      "./extensions"
+    ],
+    "prompts": [
+      "./prompts"
+    ]
+  },
+  "files": [
+    "extensions/**/*.ts",
+    "prompts/**/*.md",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "typecheck": "tsc --noEmit",
+    "lint:dead": "knip --no-gitignore",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "release": "standard-version",
+    "release:dry-run": "standard-version --dry-run",
+    "postinstall": "simple-git-hooks 2>/dev/null || true"
+  },
+  "simple-git-hooks": {
+    "pre-commit": "npx lint-staged",
+    "pre-push": "npm run typecheck && npm run test",
+    "commit-msg": "npx commitlint --edit ${1}"
+  },
+  "lint-staged": {
+    "*.{ts,js,json,md}": [
+      "prettier --write"
+    ]
+  },
+  "dependencies": {
+    "@morphllm/morphsdk": "0.2.160"
+  },
+  "peerDependencies": {
+    "@mariozechner/pi-ai": "*",
+    "@mariozechner/pi-coding-agent": "*",
+    "@mariozechner/pi-tui": "*",
+    "typebox": "*"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^20.5.0",
+    "@commitlint/config-conventional": "^20.5.0",
+    "@types/node": "^20.0.0",
+    "@vitest/coverage-v8": "^4.1.2",
+    "knip": "^6.2.0",
+    "lint-staged": "^16.4.0",
+    "prettier": "^3.8.1",
+    "simple-git-hooks": "^2.13.1",
+    "standard-version": "^9.5.0",
+    "typescript": "^5.0.0",
+    "vitest": "^4.1.4"
+  }
+}
