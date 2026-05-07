@@ -30,10 +30,6 @@ afterEach(() => {
   vi.unstubAllEnvs();
 });
 
-// ===========================================================================
-// Extension registration
-// ===========================================================================
-
 describe('extension registration', () => {
   it('registers morph_edit tool when MORPH_EDIT is not false', async () => {
     saveEnv(['MORPH_API_KEY', 'MORPH_EDIT']);
@@ -135,10 +131,6 @@ describe('extension registration', () => {
   });
 });
 
-// ===========================================================================
-// session_start event
-// ===========================================================================
-
 describe('session_start', () => {
   it('notifies warning when MORPH_API_KEY not set', async () => {
     saveEnv(['MORPH_API_KEY']);
@@ -178,10 +170,6 @@ describe('session_start', () => {
     expect(notify).toHaveBeenCalledWith(expect.stringContaining('Morph plugin'), 'info');
   });
 });
-
-// ===========================================================================
-// before_agent_start event — routing hints
-// ===========================================================================
 
 describe('before_agent_start routing hints', () => {
   it('injects routing hints when MORPH_API_KEY is set', async () => {

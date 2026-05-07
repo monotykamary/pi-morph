@@ -71,10 +71,6 @@ afterEach(() => {
   tmpDirs = [];
 });
 
-// ===========================================================================
-// normalizeCodeEditInput
-// ===========================================================================
-
 describe('normalizeCodeEditInput', () => {
   it('returns plain code unchanged', () => {
     const input = `${EXISTING_CODE_MARKER}\nfunction foo() { return 1 }\n${EXISTING_CODE_MARKER}`;
@@ -157,10 +153,6 @@ describe('normalizeCodeEditInput', () => {
   });
 });
 
-// ===========================================================================
-// resolveFilepath
-// ===========================================================================
-
 describe('resolveFilepath', () => {
   it('passes through absolute paths', () => {
     expect(resolveFilepath('/abs/path.ts', '/base')).toBe('/abs/path.ts');
@@ -183,10 +175,6 @@ describe('resolveFilepath', () => {
     expect(resolved).not.toContain('/base/project');
   });
 });
-
-// ===========================================================================
-// isValidContext / PLAUSIBLE_PATH_RE
-// ===========================================================================
 
 describe('isValidContext', () => {
   it('rejects empty file', () => {
@@ -239,10 +227,6 @@ describe('isValidContext', () => {
     expect(isValidContext({ file: 'Makefile.toml', content: 'code' })).toBe(true);
   });
 });
-
-// ===========================================================================
-// Marker leakage detection logic (ported from OpenCode plugin tests)
-// ===========================================================================
 
 describe('marker leakage detection logic', () => {
   it('detected when original lacks marker', () => {
@@ -298,10 +282,6 @@ describe('marker leakage detection logic', () => {
     expect(wouldTrigger).toBe(false);
   });
 });
-
-// ===========================================================================
-// Truncation detection logic (ported from OpenCode plugin tests)
-// ===========================================================================
 
 describe('truncation detection logic', () => {
   function wouldTriggerTruncation(
@@ -392,10 +372,6 @@ describe('truncation detection logic', () => {
   });
 });
 
-// ===========================================================================
-// Feature flag environment variables
-// ===========================================================================
-
 describe('feature flags', () => {
   it('MORPH_EDIT defaults to enabled', () => {
     vi.unstubAllEnvs();
@@ -430,10 +406,6 @@ describe('feature flags', () => {
   });
 });
 
-// ===========================================================================
-// Packaged tool-selection instructions
-// ===========================================================================
-
 describe('packaged tool-selection instructions', () => {
   it('instruction file exists and routes large edits to morph_edit', () => {
     const content = readFileSync(join(__dirname, '..', 'prompts', 'morph-tools.md'), 'utf-8');
@@ -460,10 +432,6 @@ describe('packaged tool-selection instructions', () => {
     expect(content).toContain('MORPH_COMPACT_RATIO');
   });
 });
-
-// ===========================================================================
-// buildCompactInputFromText — compaction input parsing
-// ===========================================================================
 
 describe('buildCompactInputFromText', () => {
   // Duplicate the function for testing (it's module-scoped in index.ts)
@@ -564,10 +532,6 @@ describe('buildCompactInputFromText', () => {
     expect(result[3]).toEqual({ role: 'assistant', content: 'A2' });
   });
 });
-
-// ===========================================================================
-// Public repo locator resolution
-// ===========================================================================
 
 describe('resolvePublicRepoLocator', () => {
   // Duplicate the function for unit testing
