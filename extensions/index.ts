@@ -16,7 +16,7 @@
  * @see https://docs.morphllm.com/quickstart
  */
 
-import type { ExtensionAPI } from '@mariozechner/pi-coding-agent';
+import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
 import {
   convertToLlm,
   serializeConversation,
@@ -25,10 +25,10 @@ import {
   DEFAULT_MAX_BYTES,
   DEFAULT_MAX_LINES,
   formatSize,
-} from '@mariozechner/pi-coding-agent';
+} from '@earendil-works/pi-coding-agent';
 import { Type } from 'typebox';
-import { Text } from '@mariozechner/pi-tui';
-import { renderDiff } from '@mariozechner/pi-coding-agent';
+import { Text } from '@earendil-works/pi-tui';
+import { renderDiff } from '@earendil-works/pi-coding-agent';
 import { MorphClient, WarpGrepClient, CompactClient } from '@morphllm/morphsdk';
 import type { WarpGrepResult } from '@morphllm/morphsdk';
 import { isAbsolute, resolve as resolvePath } from 'node:path';

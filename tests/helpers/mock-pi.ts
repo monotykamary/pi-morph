@@ -4,7 +4,7 @@
  * Provides a mock ExtensionAPI and factories for building test contexts.
  */
 
-import type { ExtensionAPI, ToolInfo } from '@mariozechner/pi-coding-agent';
+import type { ExtensionAPI, ToolInfo } from '@earendil-works/pi-coding-agent';
 
 // ---------------------------------------------------------------------------
 // Mock ExtensionAPI
