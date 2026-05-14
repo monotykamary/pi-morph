@@ -1,4 +1,6 @@
-# pi-morph-plugin
+<div align="center">
+
+# 🌀 pi-morph-plugin
 
 [Pi](https://pi.dev) extension for [Morph](https://morphllm.com). Four capabilities:
 
@@ -8,6 +10,8 @@
 - **Compaction** — 25,000+ tok/s context compression in sub-2s, +0.6% on SWE-Bench Pro
 
 On production repos and SWE-Bench Pro, enabling WarpGrep and compaction improves task accuracy by **6%**, reduces cost, and is net **28% faster**.
+
+</div>
 
 ---
 
