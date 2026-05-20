@@ -44,13 +44,13 @@ The environment variable takes priority over auth.json.
 ### 2. Install the plugin
 
 ```bash
-pi install git:github.com/morphllm/pi-morph-plugin
+pi install https://github.com/morphllm/pi-morph-plugin
 ```
 
 Or install locally in your project:
 
 ```bash
-pi install -l git:github.com/morphllm/pi-morph-plugin
+pi install -l https://github.com/morphllm/pi-morph-plugin
 ```
 
 ### 3. Start Pi
