@@ -55,27 +55,33 @@
     ]
   },
   "dependencies": {
-    "@morphllm/morphsdk": "0.2.160",
-    "diff": "^7.0.0"
+    "@morphllm/morphsdk": "0.2.171",
+    "diff": "9.0.0"
   },
   "peerDependencies": {
-    "@earendil-works/pi-ai": "*",
-    "@earendil-works/pi-coding-agent": "*",
-    "@earendil-works/pi-tui": "*",
-    "typebox": "*"
+    "@earendil-works/pi-ai": ">=0.74.0",
+    "@earendil-works/pi-coding-agent": ">=0.74.0",
+    "@earendil-works/pi-tui": ">=0.74.0",
+    "typebox": ">=1.1.24"
   },
   "devDependencies": {
-    "@commitlint/cli": "^20.5.0",
-    "@commitlint/config-conventional": "^20.5.0",
-    "@types/diff": "^7.0.2",
-    "@types/node": "^20.0.0",
-    "@vitest/coverage-v8": "^4.1.2",
-    "knip": "^6.2.0",
-    "lint-staged": "^16.4.0",
-    "prettier": "^3.8.1",
-    "simple-git-hooks": "^2.13.1",
-    "standard-version": "^9.5.0",
-    "typescript": "^5.0.0",
-    "vitest": "^4.1.4"
+    "@commitlint/cli": "21.0.1",
+    "@commitlint/config-conventional": "21.0.1",
+    "@types/diff": "8.0.0",
+    "@types/node": "25.9.1",
+    "@vitest/coverage-v8": "4.1.7",
+    "knip": "6.14.1",
+    "lint-staged": "17.0.5",
+    "prettier": "3.8.3",
+    "simple-git-hooks": "2.13.1",
+    "standard-version": "9.5.0",
+    "typescript": "6.0.3",
+    "vitest": "4.1.7"
+  },
+  "overrides": {
+    "brace-expansion": "5.0.6",
+    "fast-xml-builder": "1.2.0",
+    "protobufjs": "8.4.0",
+    "ws": "8.20.1"
   }
 }
