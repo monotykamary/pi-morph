@@ -2,16 +2,16 @@
 
 # 🌀 pi-morph-plugin
 
-[Pi](https://pi.dev) extension for [Morph](https://morphllm.com). Four capabilities:
+**Fast Apply, WarpGrep, Compaction & Repo Context via [Morph](https://morphllm.com)**
 
-- **Fast Apply** — 10,500+ tok/s code editing with lazy markers
-- **WarpGrep** — fast agentic codebase search, +4% on SWE-Bench Pro, -15% cost
-- **Public Repo Context** — grounded context search for public GitHub repos without cloning
-- **Compaction** — 25,000+ tok/s context compression in sub-2s, +0.6% on SWE-Bench Pro
+_10,500+ tok/s code editing, agentic search, and 25,000+ tok/s compression for [pi](https://github.com/earendil-works/pi-coding-agent)._
 
-On production repos and SWE-Bench Pro, enabling WarpGrep and compaction improves task accuracy by **6%**, reduces cost, and is net **28% faster**.
+[![pi extension](https://img.shields.io/badge/pi-extension-blueviolet)](https://github.com/earendil-works/pi-coding-agent)
+[![license](https://img.shields.io/badge/license-MIT-blue)](./LICENSE)
 
 </div>
+
+---
 
 ---
 
