@@ -3,5 +3,6 @@
   "entry": [],
   "project": ["extensions/**/*.ts"],
   "ignoreExportsUsedInFile": true,
+  "ignoreDependencies": ["@earendil-works/pi-server"],
   "ignore": []
 }
